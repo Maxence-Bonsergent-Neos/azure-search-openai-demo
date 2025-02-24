@@ -18,7 +18,6 @@
     flex-direction: column;
     align-items: center;
     width: 100%;
-    max-height: calc(100vh - 10rem);
     max-width: 61.25rem;
 }
 
@@ -61,7 +60,6 @@
 
 .chatMessageStream {
     flex-grow: 1;
-    max-height: 64rem;
     width: 100%;
     padding: 0 2rem;
     display: flex;
