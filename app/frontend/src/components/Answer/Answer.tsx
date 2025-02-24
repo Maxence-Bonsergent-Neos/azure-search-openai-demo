@@ -27,7 +27,7 @@ export const Answer = ({ answer, isSelected, isStreaming }: Props) => {
     const followupQuestions = answer.context?.followup_questions;
     const parsedAnswer = useMemo(() => parseAnswerToHtml(answer, isStreaming), [answer]);
     const { t } = useTranslation();
-    const sanitizedAnswerHtml = DOMPurify.sanitize(parsedAnswer.answerHtml);
+    const sanitizedAnswerHtml = DOMPurify.sanitize(parsedAnswer);
     const [copied, setCopied] = useState(false);
 
     const handleCopy = () => {

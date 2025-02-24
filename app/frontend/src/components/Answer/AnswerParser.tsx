@@ -1,10 +1,4 @@
-import { renderToStaticMarkup } from "react-dom/server";
-import { ChatAppResponse, getCitationFilePath } from "../../api";
-
-type HtmlParsedAnswer = {
-    answerHtml: string;
-    citations: string[];
-};
+import { ChatAppResponse } from "../../api";
 
 // Function to validate citation format and check if dataPoint starts with possible citation
 function isCitationValid(contextDataPoints: any, citationCandidate: string): boolean {
@@ -30,10 +24,8 @@ function isCitationValid(contextDataPoints: any, citationCandidate: string): boo
     return isValidCitation;
 }
 
-export function parseAnswerToHtml(answer: ChatAppResponse, isStreaming: boolean): HtmlParsedAnswer {
+export function parseAnswerToHtml(answer: ChatAppResponse, isStreaming: boolean): string {
     const contextDataPoints = answer.context.data_points;
-    const citations: string[] = [];
-
     // Trim any whitespace from the end of the answer after removing follow-up questions
     let parsedAnswer = answer.message.content.trim();
 
@@ -52,37 +44,15 @@ export function parseAnswerToHtml(answer: ChatAppResponse, isStreaming: boolean)
         parsedAnswer = truncatedAnswer;
     }
 
-    const parts = parsedAnswer.split(/\[([^\]]+)\]/g);
+    const parts = parsedAnswer.split(/\s\[([^\]]+)\]/g);
 
     const fragments: string[] = parts.map((part, index) => {
         if (index % 2 === 0) {
             return part;
         } else {
-            let citationIndex: number;
-
-            if (!isCitationValid(contextDataPoints, part)) {
-                return `[${part}]`;
-            }
-
-            if (citations.indexOf(part) !== -1) {
-                citationIndex = citations.indexOf(part) + 1;
-            } else {
-                citations.push(part);
-                citationIndex = citations.length;
-            }
-
-            const path = getCitationFilePath(part);
-
-            return renderToStaticMarkup(
-                <a className="supContainer" title={part}>
-                    <sup>{citationIndex}</sup>
-                </a>
-            );
+            return isCitationValid(contextDataPoints, part) ? "" : ` [${part}]`;
         }
     });
 
-    return {
-        answerHtml: fragments.join(""),
-        citations
-    };
+    return fragments.join("");
 }
