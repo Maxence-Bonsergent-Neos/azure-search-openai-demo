@@ -1,45 +1,35 @@
-import { useRef, useState, useEffect, useContext } from "react";
-import { useTranslation } from "react-i18next";
-import { Helmet } from "react-helmet-async";
-import { Panel, DefaultButton } from "@fluentui/react";
 import readNDJSONStream from "ndjson-readablestream";
+import { useContext, useEffect, useRef, useState } from "react";
+import { Helmet } from "react-helmet-async";
+import { useTranslation } from "react-i18next";
 
-import appLogo from "../../assets/applogo.svg";
+import appLogo from "../../assets/images/appLogo.svg";
 import styles from "./Chat.module.css";
 
+import { useMsal } from "@azure/msal-react";
 import {
     chatApi,
-    configApi,
-    RetrievalMode,
+    ChatAppRequest,
     ChatAppResponse,
     ChatAppResponseOrError,
-    ChatAppRequest,
-    ResponseMessage,
-    VectorFieldOptions,
+    configApi,
     GPT4VInput,
-    SpeechConfig
+    ResponseMessage,
+    RetrievalMode,
+    SpeechConfig,
+    VectorFieldOptions
 } from "../../api";
+import { getToken, useLogin } from "../../authConfig";
 import { Answer, AnswerError, AnswerLoading } from "../../components/Answer";
-import { QuestionInput } from "../../components/QuestionInput";
-import { ExampleList } from "../../components/Example";
-import { UserChatMessage } from "../../components/UserChatMessage";
-import { AnalysisPanel, AnalysisPanelTabs } from "../../components/AnalysisPanel";
-import { HistoryPanel } from "../../components/HistoryPanel";
-import { HistoryProviderOptions, useHistoryManager } from "../../components/HistoryProviders";
-import { HistoryButton } from "../../components/HistoryButton";
-import { SettingsButton } from "../../components/SettingsButton";
+import { BottomInfoBar } from "../../components/BottomInfoBar";
 import { ClearChatButton } from "../../components/ClearChatButton";
-import { UploadFile } from "../../components/UploadFile";
-import { useLogin, getToken, requireAccessControl } from "../../authConfig";
-import { useMsal } from "@azure/msal-react";
-import { TokenClaimsDisplay } from "../../components/TokenClaimsDisplay";
-import { LoginContext } from "../../loginContext";
+import { ExampleList } from "../../components/Example";
+import { QuestionInput } from "../../components/QuestionInput";
+import { UserChatMessage } from "../../components/UserChatMessage";
 import { LanguagePicker } from "../../i18n/LanguagePicker";
-import { Settings } from "../../components/Settings/Settings";
+import { LoginContext } from "../../loginContext";
 
 const Chat = () => {
-    const [isConfigPanelOpen, setIsConfigPanelOpen] = useState(false);
-    const [isHistoryPanelOpen, setIsHistoryPanelOpen] = useState(false);
     const [promptTemplate, setPromptTemplate] = useState<string>("");
     const [temperature, setTemperature] = useState<number>(0.3);
     const [seed, setSeed] = useState<number | null>(null);
@@ -67,23 +57,16 @@ const Chat = () => {
     const [error, setError] = useState<unknown>();
 
     const [activeCitation, setActiveCitation] = useState<string>();
-    const [activeAnalysisPanelTab, setActiveAnalysisPanelTab] = useState<AnalysisPanelTabs | undefined>(undefined);
 
     const [selectedAnswer, setSelectedAnswer] = useState<number>(0);
     const [answers, setAnswers] = useState<[user: string, response: ChatAppResponse][]>([]);
     const [streamedAnswers, setStreamedAnswers] = useState<[user: string, response: ChatAppResponse][]>([]);
     const [speechUrls, setSpeechUrls] = useState<(string | null)[]>([]);
 
-    const [showGPT4VOptions, setShowGPT4VOptions] = useState<boolean>(false);
-    const [showSemanticRankerOption, setShowSemanticRankerOption] = useState<boolean>(false);
-    const [showVectorOption, setShowVectorOption] = useState<boolean>(false);
-    const [showUserUpload, setShowUserUpload] = useState<boolean>(false);
     const [showLanguagePicker, setshowLanguagePicker] = useState<boolean>(false);
     const [showSpeechInput, setShowSpeechInput] = useState<boolean>(false);
     const [showSpeechOutputBrowser, setShowSpeechOutputBrowser] = useState<boolean>(false);
     const [showSpeechOutputAzure, setShowSpeechOutputAzure] = useState<boolean>(false);
-    const [showChatHistoryBrowser, setShowChatHistoryBrowser] = useState<boolean>(false);
-    const [showChatHistoryCosmos, setShowChatHistoryCosmos] = useState<boolean>(false);
     const audio = useRef(new Audio()).current;
     const [isPlaying, setIsPlaying] = useState(false);
 
@@ -97,20 +80,11 @@ const Chat = () => {
 
     const getConfig = async () => {
         configApi().then(config => {
-            setShowGPT4VOptions(config.showGPT4VOptions);
             setUseSemanticRanker(config.showSemanticRankerOption);
-            setShowSemanticRankerOption(config.showSemanticRankerOption);
-            setShowVectorOption(config.showVectorOption);
-            if (!config.showVectorOption) {
-                setRetrievalMode(RetrievalMode.Text);
-            }
-            setShowUserUpload(config.showUserUpload);
             setshowLanguagePicker(config.showLanguagePicker);
             setShowSpeechInput(config.showSpeechInput);
             setShowSpeechOutputBrowser(config.showSpeechOutputBrowser);
             setShowSpeechOutputAzure(config.showSpeechOutputAzure);
-            setShowChatHistoryBrowser(config.showChatHistoryBrowser);
-            setShowChatHistoryCosmos(config.showChatHistoryCosmos);
         });
     };
 
@@ -160,20 +134,12 @@ const Chat = () => {
     const client = useLogin ? useMsal().instance : undefined;
     const { loggedIn } = useContext(LoginContext);
 
-    const historyProvider: HistoryProviderOptions = (() => {
-        if (useLogin && showChatHistoryCosmos) return HistoryProviderOptions.CosmosDB;
-        if (showChatHistoryBrowser) return HistoryProviderOptions.IndexedDB;
-        return HistoryProviderOptions.None;
-    })();
-    const historyManager = useHistoryManager(historyProvider);
-
     const makeApiRequest = async (question: string) => {
         lastQuestionRef.current = question;
 
         error && setError(undefined);
         setIsLoading(true);
         setActiveCitation(undefined);
-        setActiveAnalysisPanelTab(undefined);
 
         const token = client ? await getToken(client) : undefined;
 
@@ -221,20 +187,12 @@ const Chat = () => {
             if (shouldStream) {
                 const parsedResponse: ChatAppResponse = await handleAsyncRequest(question, answers, response.body);
                 setAnswers([...answers, [question, parsedResponse]]);
-                if (typeof parsedResponse.session_state === "string" && parsedResponse.session_state !== "") {
-                    const token = client ? await getToken(client) : undefined;
-                    historyManager.addItem(parsedResponse.session_state, [...answers, [question, parsedResponse]], token);
-                }
             } else {
                 const parsedResponse: ChatAppResponseOrError = await response.json();
                 if (parsedResponse.error) {
                     throw Error(parsedResponse.error);
                 }
                 setAnswers([...answers, [question, parsedResponse as ChatAppResponse]]);
-                if (typeof parsedResponse.session_state === "string" && parsedResponse.session_state !== "") {
-                    const token = client ? await getToken(client) : undefined;
-                    historyManager.addItem(parsedResponse.session_state, [...answers, [question, parsedResponse as ChatAppResponse]], token);
-                }
             }
             setSpeechUrls([...speechUrls, null]);
         } catch (e) {
@@ -248,7 +206,6 @@ const Chat = () => {
         lastQuestionRef.current = "";
         error && setError(undefined);
         setActiveCitation(undefined);
-        setActiveAnalysisPanelTab(undefined);
         setAnswers([]);
         setSpeechUrls([]);
         setStreamedAnswers([]);
@@ -325,28 +282,11 @@ const Chat = () => {
         makeApiRequest(example);
     };
 
-    const onShowCitation = (citation: string, index: number) => {
-        if (activeCitation === citation && activeAnalysisPanelTab === AnalysisPanelTabs.CitationTab && selectedAnswer === index) {
-            setActiveAnalysisPanelTab(undefined);
-        } else {
-            setActiveCitation(citation);
-            setActiveAnalysisPanelTab(AnalysisPanelTabs.CitationTab);
-        }
-
-        setSelectedAnswer(index);
-    };
-
-    const onToggleTab = (tab: AnalysisPanelTabs, index: number) => {
-        if (activeAnalysisPanelTab === tab && selectedAnswer === index) {
-            setActiveAnalysisPanelTab(undefined);
-        } else {
-            setActiveAnalysisPanelTab(tab);
-        }
-
-        setSelectedAnswer(index);
-    };
-
     const { t, i18n } = useTranslation();
+
+    const titleArr = t("chatEmptyStateTitle").split(" ");
+    const titleBold = titleArr.length > 0 ? titleArr.slice(0, titleArr.length - 1).join(" ") : "";
+    const titleEnd = titleArr.length > 1 ? titleArr[titleArr.length - 1] : "";
 
     return (
         <div className={styles.container}>
@@ -356,23 +296,20 @@ const Chat = () => {
             </Helmet>
             <div className={styles.commandsSplitContainer}>
                 <div className={styles.commandsContainer}>
-                    {((useLogin && showChatHistoryCosmos) || showChatHistoryBrowser) && (
-                        <HistoryButton className={styles.commandButton} onClick={() => setIsHistoryPanelOpen(!isHistoryPanelOpen)} />
-                    )}
-                </div>
-                <div className={styles.commandsContainer}>
                     <ClearChatButton className={styles.commandButton} onClick={clearChat} disabled={!lastQuestionRef.current || isLoading} />
-                    {showUserUpload && <UploadFile className={styles.commandButton} disabled={!loggedIn} />}
-                    <SettingsButton className={styles.commandButton} onClick={() => setIsConfigPanelOpen(!isConfigPanelOpen)} />
                 </div>
             </div>
-            <div className={styles.chatRoot} style={{ marginLeft: isHistoryPanelOpen ? "300px" : "0" }}>
+            <div className={styles.chatRoot}>
                 <div className={styles.chatContainer}>
                     {!lastQuestionRef.current ? (
                         <div className={styles.chatEmptyState}>
-                            <img src={appLogo} alt="App logo" width="120" height="120" />
-
-                            <h1 className={styles.chatEmptyStateTitle}>{t("chatEmptyStateTitle")}</h1>
+                            <h1 className={styles.chatEmptyStateTitle}>
+                                <span className={styles.titleBold}>{titleBold}</span>&nbsp;
+                                {titleEnd}
+                            </h1>
+                            <div className={styles.logoContainer}>
+                                <img src={appLogo} alt="App logo" width="256" height="256" />
+                            </div>
                             <h2 className={styles.chatEmptyStateSubtitle}>{t("chatEmptyStateSubtitle")}</h2>
                             {showLanguagePicker && <LanguagePicker onLanguageChange={newLang => i18n.changeLanguage(newLang)} />}
 
@@ -392,9 +329,6 @@ const Chat = () => {
                                                 index={index}
                                                 speechConfig={speechConfig}
                                                 isSelected={false}
-                                                onCitationClicked={c => onShowCitation(c, index)}
-                                                onThoughtProcessClicked={() => onToggleTab(AnalysisPanelTabs.ThoughtProcessTab, index)}
-                                                onSupportingContentClicked={() => onToggleTab(AnalysisPanelTabs.SupportingContentTab, index)}
                                                 onFollowupQuestionClicked={q => makeApiRequest(q)}
                                                 showFollowupQuestions={useSuggestFollowupQuestions && answers.length - 1 === index}
                                                 showSpeechOutputAzure={showSpeechOutputAzure}
@@ -414,10 +348,7 @@ const Chat = () => {
                                                 answer={answer[1]}
                                                 index={index}
                                                 speechConfig={speechConfig}
-                                                isSelected={selectedAnswer === index && activeAnalysisPanelTab !== undefined}
-                                                onCitationClicked={c => onShowCitation(c, index)}
-                                                onThoughtProcessClicked={() => onToggleTab(AnalysisPanelTabs.ThoughtProcessTab, index)}
-                                                onSupportingContentClicked={() => onToggleTab(AnalysisPanelTabs.SupportingContentTab, index)}
+                                                isSelected={selectedAnswer === index}
                                                 onFollowupQuestionClicked={q => makeApiRequest(q)}
                                                 showFollowupQuestions={useSuggestFollowupQuestions && answers.length - 1 === index}
                                                 showSpeechOutputAzure={showSpeechOutputAzure}
@@ -455,72 +386,10 @@ const Chat = () => {
                             showSpeechInput={showSpeechInput}
                         />
                     </div>
+                    <div className={styles.bottomInfoContainer}>
+                        <BottomInfoBar />
+                    </div>
                 </div>
-
-                {answers.length > 0 && activeAnalysisPanelTab && (
-                    <AnalysisPanel
-                        className={styles.chatAnalysisPanel}
-                        activeCitation={activeCitation}
-                        onActiveTabChanged={x => onToggleTab(x, selectedAnswer)}
-                        citationHeight="810px"
-                        answer={answers[selectedAnswer][1]}
-                        activeTab={activeAnalysisPanelTab}
-                    />
-                )}
-
-                {((useLogin && showChatHistoryCosmos) || showChatHistoryBrowser) && (
-                    <HistoryPanel
-                        provider={historyProvider}
-                        isOpen={isHistoryPanelOpen}
-                        notify={!isStreaming && !isLoading}
-                        onClose={() => setIsHistoryPanelOpen(false)}
-                        onChatSelected={answers => {
-                            if (answers.length === 0) return;
-                            setAnswers(answers);
-                            lastQuestionRef.current = answers[answers.length - 1][0];
-                        }}
-                    />
-                )}
-
-                <Panel
-                    headerText={t("labels.headerText")}
-                    isOpen={isConfigPanelOpen}
-                    isBlocking={false}
-                    onDismiss={() => setIsConfigPanelOpen(false)}
-                    closeButtonAriaLabel={t("labels.closeButton")}
-                    onRenderFooterContent={() => <DefaultButton onClick={() => setIsConfigPanelOpen(false)}>{t("labels.closeButton")}</DefaultButton>}
-                    isFooterAtBottom={true}
-                >
-                    <Settings
-                        promptTemplate={promptTemplate}
-                        temperature={temperature}
-                        retrieveCount={retrieveCount}
-                        seed={seed}
-                        minimumSearchScore={minimumSearchScore}
-                        minimumRerankerScore={minimumRerankerScore}
-                        useSemanticRanker={useSemanticRanker}
-                        useSemanticCaptions={useSemanticCaptions}
-                        excludeCategory={excludeCategory}
-                        includeCategory={includeCategory}
-                        retrievalMode={retrievalMode}
-                        useGPT4V={useGPT4V}
-                        gpt4vInput={gpt4vInput}
-                        vectorFieldList={vectorFieldList}
-                        showSemanticRankerOption={showSemanticRankerOption}
-                        showGPT4VOptions={showGPT4VOptions}
-                        showVectorOption={showVectorOption}
-                        useOidSecurityFilter={useOidSecurityFilter}
-                        useGroupsSecurityFilter={useGroupsSecurityFilter}
-                        useLogin={!!useLogin}
-                        loggedIn={loggedIn}
-                        requireAccessControl={requireAccessControl}
-                        shouldStream={shouldStream}
-                        useSuggestFollowupQuestions={useSuggestFollowupQuestions}
-                        showSuggestFollowupQuestions={true}
-                        onChange={handleSettingsChange}
-                    />
-                    {useLogin && <TokenClaimsDisplay />}
-                </Panel>
             </div>
         </div>
     );

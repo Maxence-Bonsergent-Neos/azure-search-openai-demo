@@ -1,17 +1,15 @@
-import { useMemo, useState } from "react";
-import { Stack, IconButton } from "@fluentui/react";
-import { useTranslation } from "react-i18next";
+import { IconButton, Stack } from "@fluentui/react";
 import DOMPurify from "dompurify";
+import { useMemo, useState } from "react";
+import { useTranslation } from "react-i18next";
 import ReactMarkdown from "react-markdown";
-import remarkGfm from "remark-gfm";
 import rehypeRaw from "rehype-raw";
+import remarkGfm from "remark-gfm";
 
+import { ChatAppResponse, SpeechConfig } from "../../api";
 import styles from "./Answer.module.css";
-import { ChatAppResponse, getCitationFilePath, SpeechConfig } from "../../api";
-import { parseAnswerToHtml } from "./AnswerParser";
 import { AnswerIcon } from "./AnswerIcon";
-import { SpeechOutputBrowser } from "./SpeechOutputBrowser";
-import { SpeechOutputAzure } from "./SpeechOutputAzure";
+import { parseAnswerToHtml } from "./AnswerParser";
 
 interface Props {
     answer: ChatAppResponse;
@@ -19,31 +17,15 @@ interface Props {
     speechConfig: SpeechConfig;
     isSelected?: boolean;
     isStreaming: boolean;
-    onCitationClicked: (filePath: string) => void;
-    onThoughtProcessClicked: () => void;
-    onSupportingContentClicked: () => void;
     onFollowupQuestionClicked?: (question: string) => void;
     showFollowupQuestions?: boolean;
     showSpeechOutputBrowser?: boolean;
     showSpeechOutputAzure?: boolean;
 }
 
-export const Answer = ({
-    answer,
-    index,
-    speechConfig,
-    isSelected,
-    isStreaming,
-    onCitationClicked,
-    onThoughtProcessClicked,
-    onSupportingContentClicked,
-    onFollowupQuestionClicked,
-    showFollowupQuestions,
-    showSpeechOutputAzure,
-    showSpeechOutputBrowser
-}: Props) => {
+export const Answer = ({ answer, isSelected, isStreaming }: Props) => {
     const followupQuestions = answer.context?.followup_questions;
-    const parsedAnswer = useMemo(() => parseAnswerToHtml(answer, isStreaming, onCitationClicked), [answer]);
+    const parsedAnswer = useMemo(() => parseAnswerToHtml(answer, isStreaming), [answer]);
     const { t } = useTranslation();
     const sanitizedAnswerHtml = DOMPurify.sanitize(parsedAnswer.answerHtml);
     const [copied, setCopied] = useState(false);
@@ -68,32 +50,12 @@ export const Answer = ({
                     <AnswerIcon />
                     <div>
                         <IconButton
-                            style={{ color: "black" }}
+                            style={{ color: "#999999" }}
                             iconProps={{ iconName: copied ? "CheckMark" : "Copy" }}
                             title={copied ? t("tooltips.copied") : t("tooltips.copy")}
                             ariaLabel={copied ? t("tooltips.copied") : t("tooltips.copy")}
                             onClick={handleCopy}
                         />
-                        <IconButton
-                            style={{ color: "black" }}
-                            iconProps={{ iconName: "Lightbulb" }}
-                            title={t("tooltips.showThoughtProcess")}
-                            ariaLabel={t("tooltips.showThoughtProcess")}
-                            onClick={() => onThoughtProcessClicked()}
-                            disabled={!answer.context.thoughts?.length}
-                        />
-                        <IconButton
-                            style={{ color: "black" }}
-                            iconProps={{ iconName: "ClipboardList" }}
-                            title={t("tooltips.showSupportingContent")}
-                            ariaLabel={t("tooltips.showSupportingContent")}
-                            onClick={() => onSupportingContentClicked()}
-                            disabled={!answer.context.data_points}
-                        />
-                        {showSpeechOutputAzure && (
-                            <SpeechOutputAzure answer={sanitizedAnswerHtml} index={index} speechConfig={speechConfig} isStreaming={isStreaming} />
-                        )}
-                        {showSpeechOutputBrowser && <SpeechOutputBrowser answer={sanitizedAnswerHtml} />}
                     </div>
                 </Stack>
             </Stack.Item>
@@ -103,37 +65,6 @@ export const Answer = ({
                     <ReactMarkdown children={sanitizedAnswerHtml} rehypePlugins={[rehypeRaw]} remarkPlugins={[remarkGfm]} />
                 </div>
             </Stack.Item>
-
-            {!!parsedAnswer.citations.length && (
-                <Stack.Item>
-                    <Stack horizontal wrap tokens={{ childrenGap: 5 }}>
-                        <span className={styles.citationLearnMore}>{t("citationWithColon")}</span>
-                        {parsedAnswer.citations.map((x, i) => {
-                            const path = getCitationFilePath(x);
-                            return (
-                                <a key={i} className={styles.citation} title={x} onClick={() => onCitationClicked(path)}>
-                                    {`${++i}. ${x}`}
-                                </a>
-                            );
-                        })}
-                    </Stack>
-                </Stack.Item>
-            )}
-
-            {!!followupQuestions?.length && showFollowupQuestions && onFollowupQuestionClicked && (
-                <Stack.Item>
-                    <Stack horizontal wrap className={`${!!parsedAnswer.citations.length ? styles.followupQuestionsList : ""}`} tokens={{ childrenGap: 6 }}>
-                        <span className={styles.followupQuestionLearnMore}>{t("followupQuestions")}</span>
-                        {followupQuestions.map((x, i) => {
-                            return (
-                                <a key={i} className={styles.followupQuestion} title={x} onClick={() => onFollowupQuestionClicked(x)}>
-                                    {`${x}`}
-                                </a>
-                            );
-                        })}
-                    </Stack>
-                </Stack.Item>
-            )}
         </Stack>
     );
 };

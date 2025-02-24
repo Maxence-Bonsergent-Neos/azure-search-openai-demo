@@ -7,16 +7,20 @@
     gap: 0.625rem;
     flex: 1;
     justify-content: center;
+    width: 100%;
+    flex-direction: column;
 }
 
 .example {
     word-break: break-word;
-    background: #dbdbdb;
+    background: #e6e6e6;
+    color: #666666;
     border-radius: 0.5rem;
     display: flex;
     flex-direction: column;
     margin-bottom: 0.3125rem;
     cursor: pointer;
+    align-items: center;
 }
 
 .example:hover {
@@ -34,35 +38,94 @@
     min-height: 4.5rem;
 }
 
-.examplesNavList li {
-    display: none;
-}
-
-.examplesNavList li:nth-of-type(1),
-.examplesNavList li:nth-of-type(2) {
-    display: block; /* Default to showing two list items */
-}
-
 @media only screen and (min-width: 992px) {
     .examplesNavList {
         flex-direction: row; /* Switch to row layout for wider screens */
         padding-left: 0;
         padding-right: 0;
+        flex-wrap: nowrap;
     }
 
     .example {
         margin-bottom: 0.3125rem;
         padding: 1.25rem;
     }
-
-    .examplesNavList li:nth-of-type(2),
-    .examplesNavList li:nth-of-type(3) {
-        display: block; /* Show an additional list item for medium heights */
-    }
     .exampleText {
-        font-size: 1.375rem;
+        font-size: 1.1rem;
         width: 17.5rem;
         padding: 0;
         min-height: 6.25rem;
+    }
+}
+
+@media only screen and (min-width: 768px) and (max-width: 992px) {
+    @media (max-height: 890px) {
+        .examplesNavList li:nth-of-type(3) {
+            display: none; /* Show an additional list item for medium heights */
+        }
+    }
+    @media (max-height: 800px) {
+        .examplesNavList li:nth-of-type(2) {
+            display: none; /* Show an additional list item for small heights */
+        }
+    }
+    @media (max-height: 720px) {
+        .examplesNavList li:nth-of-type(1) {
+            display: none; /* Show an additional list item for extra small heights */
+        }
+    }
+}
+
+@media only screen and (min-width: 600px) and (max-width: 768px) {
+    @media (max-height: 840px) {
+        .examplesNavList li:nth-of-type(3) {
+            display: none; /* Show an additional list item for medium heights */
+        }
+    }
+    @media (max-height: 760px) {
+        .examplesNavList li:nth-of-type(2) {
+            display: none; /* Show an additional list item for small heights */
+        }
+    }
+    @media (max-height: 680px) {
+        .examplesNavList li:nth-of-type(1) {
+            display: none; /* Show an additional list item for extra small heights */
+        }
+    }
+}
+
+@media only screen and (min-width: 480px) and (max-width: 600px) {
+    @media (max-height: 810px) {
+        .examplesNavList li:nth-of-type(3) {
+            display: none; /* Show an additional list item for medium heights */
+        }
+    }
+    @media (max-height: 740px) {
+        .examplesNavList li:nth-of-type(2) {
+            display: none; /* Show an additional list item for small heights */
+        }
+    }
+    @media (max-height: 670px) {
+        .examplesNavList li:nth-of-type(1) {
+            display: none; /* Show an additional list item for extra small heights */
+        }
+    }
+}
+
+@media only screen and (max-width: 480px) {
+    @media (max-height: 770px) {
+        .examplesNavList li:nth-of-type(3) {
+            display: none; /* Show an additional list item for medium heights */
+        }
+    }
+    @media (max-height: 700px) {
+        .examplesNavList li:nth-of-type(2) {
+            display: none; /* Show an additional list item for small heights */
+        }
+    }
+    @media (max-height: 640px) {
+        .examplesNavList li:nth-of-type(1) {
+            display: none; /* Show an additional list item for extra small heights */
+        }
     }
 }

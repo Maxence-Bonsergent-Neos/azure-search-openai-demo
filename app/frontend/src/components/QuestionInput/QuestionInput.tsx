@@ -1,13 +1,13 @@
-import { useState, useEffect, useContext } from "react";
 import { Stack, TextField } from "@fluentui/react";
 import { Button, Tooltip } from "@fluentui/react-components";
 import { Send28Filled } from "@fluentui/react-icons";
+import { useContext, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 
+import { requireLogin } from "../../authConfig";
+import { LoginContext } from "../../loginContext";
 import styles from "./QuestionInput.module.css";
 import { SpeechInput } from "./SpeechInput";
-import { LoginContext } from "../../loginContext";
-import { requireLogin } from "../../authConfig";
 
 interface Props {
     onSend: (question: string) => void;
@@ -75,6 +75,7 @@ export const QuestionInput = ({ onSend, disabled, placeholder, clearOnSend, init
         <Stack horizontal className={styles.questionInputContainer}>
             <TextField
                 className={styles.questionInputTextArea}
+                inputClassName={styles.questionInputTextAreaInput}
                 disabled={disableRequiredAccessControl}
                 placeholder={placeholder}
                 multiline
@@ -88,7 +89,7 @@ export const QuestionInput = ({ onSend, disabled, placeholder, clearOnSend, init
             />
             <div className={styles.questionInputButtonsContainer}>
                 <Tooltip content={t("tooltips.submitQuestion")} relationship="label">
-                    <Button size="large" icon={<Send28Filled primaryFill="rgba(115, 118, 225, 1)" />} disabled={sendQuestionDisabled} onClick={sendQuestion} />
+                    <Button size="large" icon={<Send28Filled primaryFill="rgb(198, 147, 62)" />} disabled={sendQuestionDisabled} onClick={sendQuestion} />
                 </Tooltip>
             </div>
             {showSpeechInput && <SpeechInput updateQuestion={setQuestion} />}

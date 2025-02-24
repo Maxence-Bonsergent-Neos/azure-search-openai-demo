@@ -1,6 +1,6 @@
 .answerContainer {
-    padding: 1.25em;
-    background: rgb(249, 249, 249);
+    padding: 1em;
+    background: #fff;
     border-radius: 0.5em;
     box-shadow:
         0em 0.125em 0.25em rgba(0, 0, 0, 0.14),
@@ -17,7 +17,10 @@
     font-weight: 400;
     line-height: 1.375em;
     padding-top: 1em;
-    padding-bottom: 1em;
+}
+
+.answerText p {
+    margin: 0;
 }
 
 .answerText h1,

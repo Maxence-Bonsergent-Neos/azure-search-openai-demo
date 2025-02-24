@@ -3,11 +3,13 @@
     display: flex;
     flex-direction: column;
     margin-top: 1rem;
+    min-height: calc(100vh - 1rem - 64px);
 }
 
 .chatRoot {
     flex: 1;
     display: flex;
+    justify-content: center;
 }
 
 .chatContainer {
@@ -17,35 +19,50 @@
     align-items: center;
     width: 100%;
     max-height: calc(100vh - 10rem);
+    max-width: 61.25rem;
 }
 
 .chatEmptyState {
-    flex-grow: 1;
     display: flex;
     flex-direction: column;
     justify-content: center;
     align-items: center;
     max-height: 64rem;
-    padding-top: 1rem;
+    width: 100%;
+}
+
+.bottomInfoContainer {
+    flex-grow: 1;
+    display: flex;
+    align-items: flex-end;
+}
+
+.logoContainer {
+    margin-top: -64px;
+    margin-bottom: -64px;
 }
 
 .chatEmptyStateTitle {
-    font-size: 2.75rem;
-    font-weight: 600;
-    margin-top: 0;
-    margin-bottom: 1.875rem;
+    color: #000000;
+    font-size: 2rem;
+    margin-top: 0.5rem;
+    margin-bottom: 2rem;
+    font-weight: normal;
 }
 
 .chatEmptyStateSubtitle {
-    font-weight: 600;
-    margin-bottom: 0.625rem;
+    color: #000000;
+    font-size: 1.5rem;
+    margin-top: 5rem;
+    margin-bottom: 1rem;
+    font-weight: unset;
+    text-align: center;
 }
 
 .chatMessageStream {
     flex-grow: 1;
     max-height: 64rem;
     width: 100%;
-    overflow-y: auto;
     padding: 0 2rem;
     display: flex;
     flex-direction: column;
@@ -68,10 +85,8 @@
     position: sticky;
     bottom: 0;
     flex: 0 0 6.25rem;
-    padding: 1rem;
     width: 100%;
     max-width: 64.25rem;
-    background: #f2f2f2;
 }
 
 .chatAnalysisPanel {
@@ -94,35 +109,41 @@
 
 .commandsSplitContainer {
     display: flex;
-    justify-content: space-between;
+    justify-content: center;
+    width: 100%;
+    color: #999999;
 }
 
 .commandsContainer {
     display: flex;
     padding-left: 1rem;
     padding-right: 1rem;
-    align-self: flex-end;
+    width: 100%;
+    justify-content: flex-end;
+    max-width: 61.25rem;
 }
 
 .commandButton {
     margin-bottom: 1.25rem;
 }
 
+.titleBold {
+    font-family: "Helvetica-Bold";
+}
+
+@media (max-width: 991px) {
+    .chatInput {
+        padding: 1rem;
+    }
+}
 @media (min-width: 992px) {
     .container {
         margin-top: 1.25rem;
-    }
-
-    .chatEmptyState {
-        padding-top: 3.75rem;
+        min-height: calc(100vh - 1.25rem - 64px);
     }
 
     .chatEmptyStateTitle {
-        font-size: 4rem;
-    }
-
-    .chatInput {
-        padding: 0.75rem 1.5rem 1.5rem;
+        font-size: 2rem;
     }
 
     .commandsSplitContainer {

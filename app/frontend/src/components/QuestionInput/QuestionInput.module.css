@@ -5,12 +5,16 @@
         0px 0px 0.125rem rgba(0, 0, 0, 0.12);
     width: 100%;
     padding: 0.8rem;
-    background: white;
+    background: #ffffff;
 }
 
 .questionInputTextArea {
     width: 100%;
     line-height: 2.5rem;
+}
+
+.questionInputTextAreaInput {
+    padding: 0;
 }
 
 .questionInputButtonsContainer {

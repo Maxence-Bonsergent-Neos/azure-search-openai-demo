@@ -5,17 +5,19 @@
 }
 
 .header {
-    background-color: #222222;
-    color: #f2f2f2;
+    background: url("../../assets/images/header.png");
+    height: 64px;
+    display: flex;
+    justify-content: center;
 }
 
 .headerContainer {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding-left: 1rem;
-    padding-right: 1rem;
     position: relative;
+    width: calc(100% - 16px);
+    max-width: 61.25rem;
 }
 
 .headerTitleContainer {

@@ -30,7 +30,7 @@ function isCitationValid(contextDataPoints: any, citationCandidate: string): boo
     return isValidCitation;
 }
 
-export function parseAnswerToHtml(answer: ChatAppResponse, isStreaming: boolean, onCitationClicked: (citationFilePath: string) => void): HtmlParsedAnswer {
+export function parseAnswerToHtml(answer: ChatAppResponse, isStreaming: boolean): HtmlParsedAnswer {
     const contextDataPoints = answer.context.data_points;
     const citations: string[] = [];
 
@@ -74,7 +74,7 @@ export function parseAnswerToHtml(answer: ChatAppResponse, isStreaming: boolean,
             const path = getCitationFilePath(part);
 
             return renderToStaticMarkup(
-                <a className="supContainer" title={part} onClick={() => onCitationClicked(path)}>
+                <a className="supContainer" title={part}>
                     <sup>{citationIndex}</sup>
                 </a>
             );
