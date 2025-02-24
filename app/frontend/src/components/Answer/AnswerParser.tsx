@@ -44,7 +44,7 @@ export function parseAnswerToHtml(answer: ChatAppResponse, isStreaming: boolean)
         parsedAnswer = truncatedAnswer;
     }
 
-    const parts = parsedAnswer.split(/\s\[([^\]]+)\]/g);
+    const parts = parsedAnswer.split(/\s?\[([^\]]+)\]/g);
 
     const fragments: string[] = parts.map((part, index) => {
         if (index % 2 === 0) {
