@@ -1,17 +1,26 @@
 import { RefObject, useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Link, Outlet } from "react-router-dom";
+import { configApi } from "../../api";
 import headerLogo from "../../assets/images/headerLogo.png";
 import styles from "./Layout.module.css";
 
 import { useLogin } from "../../authConfig";
 
 import { LoginButton } from "../../components/LoginButton";
+import { LanguagePicker } from "../../i18n";
 
 const Layout = () => {
-    const { t } = useTranslation();
+    const { i18n } = useTranslation();
     const [menuOpen, setMenuOpen] = useState(false);
     const menuRef: RefObject<HTMLDivElement> = useRef(null);
+    const [showLanguagePicker, setshowLanguagePicker] = useState<boolean>(false);
+
+    const getConfig = async () => {
+        configApi().then(config => {
+            setshowLanguagePicker(config.showLanguagePicker);
+        });
+    };
 
     const toggleMenu = () => {
         setMenuOpen(!menuOpen);
@@ -34,6 +43,10 @@ const Layout = () => {
         };
     }, [menuOpen]);
 
+    useEffect(() => {
+        getConfig();
+    }, []);
+
     return (
         <div className={styles.layout}>
             <header className={styles.header} role={"banner"}>
@@ -41,7 +54,10 @@ const Layout = () => {
                     <Link to="/" className={styles.headerTitleContainer}>
                         <img src={headerLogo} alt="logo" className={styles.headerLogo} />
                     </Link>
-                    <div className={styles.loginMenuContainer}>{useLogin && <LoginButton />}</div>
+                    <div className={styles.loginMenuContainer}>
+                        {showLanguagePicker && <LanguagePicker onLanguageChange={newLang => i18n.changeLanguage(newLang)} />}
+                        {useLogin && <LoginButton />}
+                    </div>
                 </div>
             </header>
 

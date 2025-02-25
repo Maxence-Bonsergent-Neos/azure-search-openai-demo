@@ -1,7 +1,6 @@
-import { useTranslation } from "react-i18next";
-import { LocalLanguage24Regular } from "@fluentui/react-icons";
-import { IDropdownOption, Dropdown } from "@fluentui/react";
 import { useId } from "@fluentui/react-hooks";
+import { Globe24Regular } from "@fluentui/react-icons";
+import { useTranslation } from "react-i18next";
 
 import { supportedLngs } from "./config";
 import styles from "./LanguagePicker.module.css";
@@ -13,16 +12,27 @@ interface Props {
 export const LanguagePicker = ({ onLanguageChange }: Props) => {
     const { i18n } = useTranslation();
 
-    const handleLanguageChange = (_ev: React.FormEvent<HTMLDivElement>, option?: IDropdownOption<string> | undefined) => {
-        onLanguageChange(option?.data || i18n.language);
-    };
     const languagePickerId = useId("languagePicker");
     const { t } = useTranslation();
 
     return (
         <div className={styles.languagePicker}>
-            <LocalLanguage24Regular className={styles.languagePickerIcon} />
-            <Dropdown
+            {Object.entries(supportedLngs)
+                .filter(([code]) => code !== i18n.language)
+                .map(([code]) => (
+                    <>
+                        <button
+                            key={code}
+                            className={code === i18n.language ? styles.selectedLanguage : styles.language}
+                            onClick={() => onLanguageChange(code)}
+                            aria-labelledby={languagePickerId}
+                        >
+                            <Globe24Regular aria-hidden="true" aria-label="Globe icon" primaryFill="#999999" />
+                            {code.toLocaleUpperCase()}
+                        </button>
+                    </>
+                ))}
+            {/* <Dropdown
                 id={languagePickerId}
                 selectedKey={i18n.language}
                 options={Object.entries(supportedLngs).map(([code, details]) => ({
@@ -33,7 +43,7 @@ export const LanguagePicker = ({ onLanguageChange }: Props) => {
                 }))}
                 onChange={handleLanguageChange}
                 ariaLabel={t("labels.languagePicker")}
-            />
+            /> */}
         </div>
     );
 };

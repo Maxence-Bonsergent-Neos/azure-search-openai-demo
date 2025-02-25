@@ -26,7 +26,6 @@ import { ClearChatButton } from "../../components/ClearChatButton";
 import { ExampleList } from "../../components/Example";
 import { QuestionInput } from "../../components/QuestionInput";
 import { UserChatMessage } from "../../components/UserChatMessage";
-import { LanguagePicker } from "../../i18n/LanguagePicker";
 import { LoginContext } from "../../loginContext";
 
 const Chat = () => {
@@ -56,9 +55,6 @@ const Chat = () => {
     const [isStreaming, setIsStreaming] = useState<boolean>(false);
     const [error, setError] = useState<unknown>();
 
-    const [activeCitation, setActiveCitation] = useState<string>();
-
-    const [selectedAnswer, setSelectedAnswer] = useState<number>(0);
     const [answers, setAnswers] = useState<[user: string, response: ChatAppResponse][]>([]);
     const [streamedAnswers, setStreamedAnswers] = useState<[user: string, response: ChatAppResponse][]>([]);
     const [speechUrls, setSpeechUrls] = useState<(string | null)[]>([]);
@@ -139,7 +135,6 @@ const Chat = () => {
 
         error && setError(undefined);
         setIsLoading(true);
-        setActiveCitation(undefined);
 
         const token = client ? await getToken(client) : undefined;
 
@@ -205,7 +200,6 @@ const Chat = () => {
     const clearChat = () => {
         lastQuestionRef.current = "";
         error && setError(undefined);
-        setActiveCitation(undefined);
         setAnswers([]);
         setSpeechUrls([]);
         setStreamedAnswers([]);
@@ -218,65 +212,6 @@ const Chat = () => {
     useEffect(() => {
         getConfig();
     }, []);
-
-    const handleSettingsChange = (field: string, value: any) => {
-        switch (field) {
-            case "promptTemplate":
-                setPromptTemplate(value);
-                break;
-            case "temperature":
-                setTemperature(value);
-                break;
-            case "seed":
-                setSeed(value);
-                break;
-            case "minimumRerankerScore":
-                setMinimumRerankerScore(value);
-                break;
-            case "minimumSearchScore":
-                setMinimumSearchScore(value);
-                break;
-            case "retrieveCount":
-                setRetrieveCount(value);
-                break;
-            case "useSemanticRanker":
-                setUseSemanticRanker(value);
-                break;
-            case "useSemanticCaptions":
-                setUseSemanticCaptions(value);
-                break;
-            case "excludeCategory":
-                setExcludeCategory(value);
-                break;
-            case "includeCategory":
-                setIncludeCategory(value);
-                break;
-            case "useOidSecurityFilter":
-                setUseOidSecurityFilter(value);
-                break;
-            case "useGroupsSecurityFilter":
-                setUseGroupsSecurityFilter(value);
-                break;
-            case "shouldStream":
-                setShouldStream(value);
-                break;
-            case "useSuggestFollowupQuestions":
-                setUseSuggestFollowupQuestions(value);
-                break;
-            case "useGPT4V":
-                setUseGPT4V(value);
-                break;
-            case "gpt4vInput":
-                setGPT4VInput(value);
-                break;
-            case "vectorFieldList":
-                setVectorFieldList(value);
-                break;
-            case "retrievalMode":
-                setRetrievalMode(value);
-                break;
-        }
-    };
 
     const onExampleClicked = (example: string) => {
         makeApiRequest(example);
@@ -311,7 +246,6 @@ const Chat = () => {
                                 <img src={appLogo} alt="App logo" width="256" height="256" />
                             </div>
                             <h2 className={styles.chatEmptyStateSubtitle}>{t("chatEmptyStateSubtitle")}</h2>
-                            {showLanguagePicker && <LanguagePicker onLanguageChange={newLang => i18n.changeLanguage(newLang)} />}
 
                             <ExampleList onExampleClicked={onExampleClicked} useGPT4V={useGPT4V} />
                         </div>
@@ -348,7 +282,6 @@ const Chat = () => {
                                                 answer={answer[1]}
                                                 index={index}
                                                 speechConfig={speechConfig}
-                                                isSelected={selectedAnswer === index}
                                                 onFollowupQuestionClicked={q => makeApiRequest(q)}
                                                 showFollowupQuestions={useSuggestFollowupQuestions && answers.length - 1 === index}
                                                 showSpeechOutputAzure={showSpeechOutputAzure}
