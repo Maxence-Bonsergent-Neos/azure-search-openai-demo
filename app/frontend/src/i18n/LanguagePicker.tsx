@@ -13,37 +13,17 @@ export const LanguagePicker = ({ onLanguageChange }: Props) => {
     const { i18n } = useTranslation();
 
     const languagePickerId = useId("languagePicker");
-    const { t } = useTranslation();
+    const otherLanguage = Object.entries(supportedLngs).find(([code]) => code !== i18n.language);
+    const code = otherLanguage ? otherLanguage[0] : i18n.language;
 
     return (
-        <div className={styles.languagePicker}>
-            {Object.entries(supportedLngs)
-                .filter(([code]) => code !== i18n.language)
-                .map(([code]) => (
-                    <>
-                        <button
-                            key={code}
-                            className={code === i18n.language ? styles.selectedLanguage : styles.language}
-                            onClick={() => onLanguageChange(code)}
-                            aria-labelledby={languagePickerId}
-                        >
-                            <Globe24Regular aria-hidden="true" aria-label="Globe icon" primaryFill="#999999" />
-                            {code.toLocaleUpperCase()}
-                        </button>
-                    </>
-                ))}
-            {/* <Dropdown
-                id={languagePickerId}
-                selectedKey={i18n.language}
-                options={Object.entries(supportedLngs).map(([code, details]) => ({
-                    key: code,
-                    text: details.name,
-                    selected: code === i18n.language,
-                    data: code
-                }))}
-                onChange={handleLanguageChange}
-                ariaLabel={t("labels.languagePicker")}
-            /> */}
-        </div>
+        otherLanguage && (
+            <div className={styles.languagePicker} onClick={() => onLanguageChange(code)}>
+                <button key={code} className={code === i18n.language ? styles.selectedLanguage : styles.language} aria-labelledby={languagePickerId}>
+                    <Globe24Regular aria-hidden="true" aria-label="Globe icon" primaryFill="#999999" />
+                    {code.toLocaleUpperCase()}
+                </button>
+            </div>
+        )
     );
 };
